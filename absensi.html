@@ -89,8 +89,18 @@
     </div>
 
     <div class="tabKonten aktif" id="tabCheckIn">
-      <p class="teksMuted">Klik nama pegawai yang belum Check In, lalu pilih shift.</p>
+      <p class="teksMuted">Klik nama-nama pegawai yang belum Check In (bisa pilih lebih dari satu), lalu klik shift di bawah untuk Check In sekaligus.</p>
       <div class="gridPegawai" id="gridCheckIn"></div>
+
+      <div class="kartu mt24" id="panelCheckInMassal">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong id="labelJumlahTerpilihCheckIn">Belum ada pegawai dipilih</strong>
+          <button type="button" class="tombolSekunder tombolKecil" id="tombolBatalPilihanCheckIn">Batal Pilih</button>
+        </div>
+        <p class="teksMuted mt16">Pilih shift untuk pegawai yang dipilih di atas:</p>
+        <div class="gridShift" id="gridPilihanShiftCheckIn"></div>
+        <div class="pesan" id="pesanCheckInMassal"></div>
+      </div>
     </div>
 
     <div class="tabKonten" id="tabCheckKembali">
@@ -101,18 +111,6 @@
     <div class="tabKonten" id="tabUpdateAbsensi">
       <p class="teksMuted">Klik nama pegawai yang absensinya hari ini mau di-update / dikoreksi.</p>
       <div class="gridPegawai" id="gridUpdate"></div>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       MODAL: PILIH SHIFT (Check In)
-  ============================================================= -->
-  <div class="overlay" id="modalShift">
-    <div class="kartuModal">
-      <h3 id="judulModalShift">Pilih Shift</h3>
-      <div class="gridShift" id="gridPilihanShift"></div>
-      <button type="button" class="tombolSekunder tombolLebar mt16" id="tombolBatalShift">Batal</button>
-      <div class="pesan" id="pesanModalShift"></div>
     </div>
   </div>
 
