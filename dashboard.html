@@ -1,0 +1,76 @@
+<!-----------------------------------------------------------------
+  PROJECT      : Sistem Absensi
+  MODULE       : Dashboard
+  FILE         : dashboard.html
+  VERSION      : v1.0.0
+  AUTHOR       : Tim Pengembang
+  CREATED      : 2026-08-30
+  LAST UPDATE  : 2026-08-30
+
+  DESCRIPTION
+  ------------------------------------------------------------------
+  Halaman menu utama setelah login. Menampilkan 4 kartu menu yang
+  mengarah ke admin.html, pegawai.html, absensi.html, laporan.html.
+  Terproteksi lewat wajibLogin() di js/dashboard.js.
+------------------------------------------------------------------->
+
+<!------------------------------------------------------------------
+  VERSION HISTORY
+  ------------------------------------------------------------------
+  v1.0.0 - Initial Release.
+------------------------------------------------------------------->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - Sistem Absensi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="headerApp">
+    <div class="judul">Sistem Absensi</div>
+    <div class="infoUser">
+      <span id="labelUserAktif">-</span>
+      <button class="tombolBahaya tombolKecil" id="tombolKeluar">Keluar</button>
+    </div>
+  </div>
+
+  <div class="kontenHalaman">
+    <h2 class="judulHalaman">Menu Utama</h2>
+    <p class="teksMuted">Pilih menu yang ingin dibuka.</p>
+
+    <div class="gridMenu">
+      <a class="kartuMenu" href="admin.html">
+        <div class="ikon">🔑</div>
+        <div class="namaMenu">Daftar Admin</div>
+        <div class="deskripsiMenu">Tambah akun admin baru</div>
+      </a>
+
+      <a class="kartuMenu" href="pegawai.html">
+        <div class="ikon">🧑‍💼</div>
+        <div class="namaMenu">Pegawai</div>
+        <div class="deskripsiMenu">Daftarkan / update / pindah divisi</div>
+      </a>
+
+      <a class="kartuMenu" href="absensi.html">
+        <div class="ikon">✅</div>
+        <div class="namaMenu">Absensi</div>
+        <div class="deskripsiMenu">Check In / Check Kembali / Update</div>
+      </a>
+
+      <a class="kartuMenu" href="laporan.html">
+        <div class="ikon">📊</div>
+        <div class="namaMenu">Laporan</div>
+        <div class="deskripsiMenu">Harian, Bulanan, Individu, OFF</div>
+      </a>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

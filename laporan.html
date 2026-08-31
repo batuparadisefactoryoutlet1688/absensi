@@ -1,0 +1,175 @@
+<!-----------------------------------------------------------------
+  PROJECT      : Sistem Absensi
+  MODULE       : Laporan
+  FILE         : laporan.html
+  VERSION      : v1.0.0
+  AUTHOR       : Tim Pengembang
+  CREATED      : 2026-08-30
+  LAST UPDATE  : 2026-08-30
+
+  DESCRIPTION
+  ------------------------------------------------------------------
+  Semua jenis laporan (Harian, Individu, Berdasarkan Status,
+  Bulanan, OFF Bulanan) dalam satu halaman - filter berubah sesuai
+  jenis laporan yang dipilih, hasil ditampilkan sebagai tabel.
+------------------------------------------------------------------->
+
+<!------------------------------------------------------------------
+  VERSION HISTORY
+  ------------------------------------------------------------------
+  v1.0.0 - Initial Release.
+------------------------------------------------------------------->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laporan - Sistem Absensi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="headerApp">
+    <div class="judul"><a href="dashboard.html">Sistem Absensi</a></div>
+    <div class="infoUser">
+      <span id="labelUserAktif">-</span>
+      <button class="tombolBahaya tombolKecil" id="tombolKeluar">Keluar</button>
+    </div>
+  </div>
+
+  <div class="kontenHalaman">
+    <a class="linkKembali" href="dashboard.html">&larr; Kembali ke Menu</a>
+    <h2 class="judulHalaman">Laporan</h2>
+
+    <div class="kartu">
+      <label for="jenisLaporan">Jenis Laporan</label>
+      <select id="jenisLaporan">
+        <option value="harian">Harian (Per PT / Divisi / Lantai)</option>
+        <option value="individu">Individu (Per Karyawan, Per Bulan)</option>
+        <option value="status">Berdasarkan Status</option>
+        <option value="bulanan">Bulanan Utama (Matrix + Rekap)</option>
+        <option value="off">OFF Bulanan (Jatah vs Terpakai)</option>
+      </select>
+
+      <!-- ========================================================
+           FILTER: HARIAN
+      ========================================================= -->
+      <div id="filterHarian" class="formGrid mt16">
+        <div>
+          <label for="hTanggal">Tanggal</label>
+          <input type="date" id="hTanggal">
+        </div>
+        <div>
+          <label for="hPt">PT</label>
+          <select id="hPt"><option value="">Semua PT</option></select>
+        </div>
+        <div>
+          <label for="hDivisi">Divisi</label>
+          <select id="hDivisi" disabled><option value="">Semua Divisi</option></select>
+        </div>
+        <div id="hBlokLantai" class="hidden">
+          <label for="hLantai">Lantai</label>
+          <select id="hLantai"><option value="">Semua Lantai</option></select>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           FILTER: INDIVIDU
+      ========================================================= -->
+      <div id="filterIndividu" class="formGrid mt16 hidden">
+        <div>
+          <label for="iKaryawan">Pegawai</label>
+          <select id="iKaryawan"><option value="">Pilih Pegawai</option></select>
+        </div>
+        <div>
+          <label for="iBulan">Bulan</label>
+          <select id="iBulan"></select>
+        </div>
+        <div>
+          <label for="iTahun">Tahun</label>
+          <input type="number" id="iTahun" min="2020" max="2100">
+        </div>
+      </div>
+
+      <!-- ========================================================
+           FILTER: STATUS
+      ========================================================= -->
+      <div id="filterStatus" class="formGrid mt16 hidden">
+        <div>
+          <label for="sStatus">Status</label>
+          <select id="sStatus"></select>
+        </div>
+        <div>
+          <label for="sBulan">Bulan</label>
+          <select id="sBulan"></select>
+        </div>
+        <div>
+          <label for="sTahun">Tahun</label>
+          <input type="number" id="sTahun" min="2020" max="2100">
+        </div>
+      </div>
+
+      <!-- ========================================================
+           FILTER: BULANAN
+      ========================================================= -->
+      <div id="filterBulanan" class="formGrid mt16 hidden">
+        <div>
+          <label for="bBulan">Bulan</label>
+          <select id="bBulan"></select>
+        </div>
+        <div>
+          <label for="bTahun">Tahun</label>
+          <input type="number" id="bTahun" min="2020" max="2100">
+        </div>
+        <div>
+          <label for="bPt">PT</label>
+          <select id="bPt"><option value="">Semua PT</option></select>
+        </div>
+        <div>
+          <label for="bDivisi">Divisi</label>
+          <select id="bDivisi" disabled><option value="">Semua Divisi</option></select>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           FILTER: OFF BULANAN
+      ========================================================= -->
+      <div id="filterOff" class="formGrid mt16 hidden">
+        <div>
+          <label for="oBulan">Bulan</label>
+          <select id="oBulan"></select>
+        </div>
+        <div>
+          <label for="oTahun">Tahun</label>
+          <input type="number" id="oTahun" min="2020" max="2100">
+        </div>
+        <div>
+          <label for="oPt">PT</label>
+          <select id="oPt"><option value="">Semua PT</option></select>
+        </div>
+        <div>
+          <label for="oDivisi">Divisi</label>
+          <select id="oDivisi" disabled><option value="">Semua Divisi</option></select>
+        </div>
+      </div>
+
+      <button type="button" id="tombolTampilkan" class="tombolLebar mt16">Tampilkan Laporan</button>
+      <div class="pesan" id="pesanLaporan"></div>
+    </div>
+
+    <div class="kartu mt24">
+      <div class="tabelWrap">
+        <table class="tabelData" id="tabelLaporan">
+          <thead><tr><th>-</th></tr></thead>
+          <tbody><tr><td class="teksMuted">Pilih jenis laporan lalu klik "Tampilkan Laporan".</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/laporan.js"></script>
+</body>
+</html>

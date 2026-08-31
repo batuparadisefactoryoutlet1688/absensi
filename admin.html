@@ -1,0 +1,70 @@
+<!-----------------------------------------------------------------
+  PROJECT      : Sistem Absensi
+  MODULE       : Daftar Admin
+  FILE         : admin.html
+  VERSION      : v1.0.0
+  AUTHOR       : Tim Pengembang
+  CREATED      : 2026-08-30
+  LAST UPDATE  : 2026-08-30
+
+  DESCRIPTION
+  ------------------------------------------------------------------
+  Form untuk menambahkan akun admin baru. Hanya bisa diakses kalau
+  sudah login (diproteksi wajibLogin() di js/admin.js).
+------------------------------------------------------------------->
+
+<!------------------------------------------------------------------
+  VERSION HISTORY
+  ------------------------------------------------------------------
+  v1.0.0 - Initial Release.
+------------------------------------------------------------------->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daftar Admin - Sistem Absensi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="headerApp">
+    <div class="judul"><a href="dashboard.html">Sistem Absensi</a></div>
+    <div class="infoUser">
+      <span id="labelUserAktif">-</span>
+      <button class="tombolBahaya tombolKecil" id="tombolKeluar">Keluar</button>
+    </div>
+  </div>
+
+  <div class="kontenHalaman">
+    <a class="linkKembali" href="dashboard.html">&larr; Kembali ke Menu</a>
+    <h2 class="judulHalaman">Daftar Admin</h2>
+    <p class="teksMuted">Tambahkan akun admin baru. Password akan otomatis di-hash.</p>
+
+    <div class="kartu mt16" style="max-width:420px;">
+      <form id="formTambahAdmin">
+        <label for="inputNama">Nama</label>
+        <input type="text" id="inputNama" required>
+
+        <label for="inputUsername">Username</label>
+        <input type="text" id="inputUsername" required>
+
+        <label for="inputPassword">Password</label>
+        <input type="password" id="inputPassword" required>
+
+        <label for="inputKonfirmasi">Konfirmasi Password</label>
+        <input type="password" id="inputKonfirmasi" required>
+
+        <button type="submit" id="tombolSimpan" class="tombolLebar">Tambah Admin</button>
+
+        <div class="pesan" id="pesanForm"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

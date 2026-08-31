@@ -1,0 +1,189 @@
+<!-----------------------------------------------------------------
+  PROJECT      : Sistem Absensi
+  MODULE       : Absensi
+  FILE         : absensi.html
+  VERSION      : v1.0.0
+  AUTHOR       : Tim Pengembang
+  CREATED      : 2026-08-30
+  LAST UPDATE  : 2026-08-30
+
+  DESCRIPTION
+  ------------------------------------------------------------------
+  Halaman inti Aplikasi Absensi. Filter Tanggal/PT/Divisi/Lantai
+  dipilih SEKALI di atas, lalu 3 tab: Check In, Check Kembali,
+  Update. Pegawai ditampilkan sebagai card (klik, bukan ketik nama)
+  sesuai Blueprint Aturan 14 & 31.
+------------------------------------------------------------------->
+
+<!------------------------------------------------------------------
+  VERSION HISTORY
+  ------------------------------------------------------------------
+  v1.0.0 - Initial Release.
+------------------------------------------------------------------->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Absensi - Sistem Absensi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="headerApp">
+    <div class="judul"><a href="dashboard.html">Sistem Absensi</a></div>
+    <div class="infoUser">
+      <span id="labelUserAktif">-</span>
+      <button class="tombolBahaya tombolKecil" id="tombolKeluar">Keluar</button>
+    </div>
+  </div>
+
+  <div class="kontenHalaman">
+    <a class="linkKembali" href="dashboard.html">&larr; Kembali ke Menu</a>
+    <h2 class="judulHalaman">Absensi</h2>
+
+    <!-- ============================================================
+         FILTER UTAMA: Tanggal / PT / Divisi / Lantai
+    ============================================================= -->
+    <div class="kartu">
+      <div class="formGrid">
+        <div>
+          <label for="fTanggal">Tanggal</label>
+          <input type="date" id="fTanggal">
+        </div>
+        <div>
+          <label for="fPt">PT</label>
+          <select id="fPt"><option value="">Pilih PT</option></select>
+        </div>
+        <div>
+          <label for="fDivisi">Divisi</label>
+          <select id="fDivisi" disabled><option value="">Pilih PT dulu</option></select>
+        </div>
+        <div id="fBlokLantai" class="hidden">
+          <label for="fLantai">Lantai</label>
+          <select id="fLantai"><option value="">Semua Lantai</option></select>
+        </div>
+      </div>
+
+      <div class="formGrid" style="margin-top:16px;">
+        <div>
+          <label for="fJamManualMasuk">Jam Masuk Manual (opsional)</label>
+          <input type="time" id="fJamManualMasuk">
+        </div>
+        <div>
+          <label for="fJamManualKembali">Jam Kembali Manual (opsional)</label>
+          <input type="time" id="fJamManualKembali">
+        </div>
+      </div>
+      <p class="teksMuted mt16">Kosongkan jam manual untuk pakai jam otomatis saat tombol diklik.</p>
+    </div>
+
+    <!-- ============================================================
+         TAB CHECK IN / CHECK KEMBALI / UPDATE
+    ============================================================= -->
+    <div class="tabBar mt24">
+      <div class="tabItem aktif" data-tab="tabCheckIn">Check In</div>
+      <div class="tabItem" data-tab="tabCheckKembali">Check Kembali</div>
+      <div class="tabItem" data-tab="tabUpdateAbsensi">Update</div>
+    </div>
+
+    <div class="tabKonten aktif" id="tabCheckIn">
+      <p class="teksMuted">Klik nama pegawai yang belum Check In, lalu pilih shift.</p>
+      <div class="gridPegawai" id="gridCheckIn"></div>
+    </div>
+
+    <div class="tabKonten" id="tabCheckKembali">
+      <p class="teksMuted">Klik nama pegawai yang sudah Check In dan belum Kembali.</p>
+      <div class="gridPegawai" id="gridCheckKembali"></div>
+    </div>
+
+    <div class="tabKonten" id="tabUpdateAbsensi">
+      <p class="teksMuted">Klik nama pegawai yang absensinya hari ini mau di-update / dikoreksi.</p>
+      <div class="gridPegawai" id="gridUpdate"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: PILIH SHIFT (Check In)
+  ============================================================= -->
+  <div class="overlay" id="modalShift">
+    <div class="kartuModal">
+      <h3 id="judulModalShift">Pilih Shift</h3>
+      <div class="gridShift" id="gridPilihanShift"></div>
+      <button type="button" class="tombolSekunder tombolLebar mt16" id="tombolBatalShift">Batal</button>
+      <div class="pesan" id="pesanModalShift"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: KONFIRMASI CHECK KEMBALI
+  ============================================================= -->
+  <div class="overlay" id="modalKembali">
+    <div class="kartuModal">
+      <h3 id="judulModalKembali">Check Kembali</h3>
+      <p class="teksMuted" id="infoModalKembali"></p>
+      <div style="display:flex; gap:8px; margin-top:16px;">
+        <button type="button" id="tombolBatalKembali" class="tombolSekunder" style="flex:1;">Batal</button>
+        <button type="button" id="tombolKonfirmasiKembali" style="flex:1;">Konfirmasi Kembali</button>
+      </div>
+      <div class="pesan" id="pesanModalKembali"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: UPDATE / KOREKSI ABSENSI
+  ============================================================= -->
+  <div class="overlay" id="modalUpdate">
+    <div class="kartuModal">
+      <h3 id="judulModalUpdate">Update Absensi</h3>
+
+      <div class="tabBar" style="margin-top:0;">
+        <div class="tabItem aktif" data-subtab="subKejadian">Kejadian</div>
+        <div class="tabItem" data-subtab="subKoreksiJam">Koreksi Jam</div>
+        <div class="tabItem" data-subtab="subKoreksiShift">Koreksi Shift</div>
+      </div>
+
+      <div class="tabKonten aktif" id="subKejadian">
+        <label for="muStatus">Status Update</label>
+        <select id="muStatus">
+          <option value="TIDAK KEMBALI">Tidak Kembali</option>
+          <option value="PULANG">Pulang</option>
+          <option value="PULANG CEPAT">Pulang Cepat</option>
+          <option value="LAINNYA">Lainnya</option>
+        </select>
+
+        <label for="muKeterangan">Keterangan</label>
+        <textarea id="muKeterangan" rows="2"></textarea>
+
+        <button type="button" id="tombolSimpanKejadian" class="tombolLebar mt16">Simpan Kejadian</button>
+      </div>
+
+      <div class="tabKonten" id="subKoreksiJam">
+        <label for="mjKolom">Koreksi Jam</label>
+        <select id="mjKolom">
+          <option value="JAM_MASUK">Jam Masuk</option>
+          <option value="JAM_KEMBALI">Jam Kembali</option>
+        </select>
+
+        <label for="mjJamBaru">Jam Baru</label>
+        <input type="time" id="mjJamBaru">
+
+        <button type="button" id="tombolSimpanKoreksiJam" class="tombolLebar mt16">Simpan Koreksi Jam</button>
+      </div>
+
+      <div class="tabKonten" id="subKoreksiShift">
+        <label>Pilih Shift Baru</label>
+        <div class="gridShift" id="gridKoreksiShift"></div>
+      </div>
+
+      <button type="button" class="tombolSekunder tombolLebar mt16" id="tombolTutupModalUpdate">Tutup</button>
+      <div class="pesan" id="pesanModalUpdate"></div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/absensi.js"></script>
+</body>
+</html>

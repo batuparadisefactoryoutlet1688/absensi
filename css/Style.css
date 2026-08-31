@@ -1,0 +1,381 @@
+/*******************************************************************
+ * PROJECT      : Sistem Absensi
+ * MODULE       : Shared Stylesheet
+ * FILE         : css/style.css
+ * VERSION      : v1.0.0
+ * AUTHOR       : Tim Pengembang
+ * CREATED      : 2026-08-30
+ * LAST UPDATE  : 2026-08-30
+ *
+ * DESCRIPTION
+ * -----------------------------------------------------------------
+ * Stylesheet bersama dipakai oleh seluruh halaman: index, dashboard,
+ * admin, pegawai, absensi, laporan. Berisi komponen umum: kartu,
+ * form, tombol, tabel, tab, badge, dan grid kartu pegawai.
+ ******************************************************************/
+
+/*******************************************************************
+ * VERSION HISTORY
+ * -----------------------------------------------------------------
+ * v1.0.0
+ * - Initial Release.
+ ******************************************************************/
+
+/*******************************************************************
+ * CONFIGURATION - WARNA & UKURAN DASAR
+ ******************************************************************/
+:root {
+  --warna-primer: #1565C0;
+  --warna-primer-gelap: #0D47A1;
+  --warna-teks: #1A1A1A;
+  --warna-teks-muted: #6B7280;
+  --warna-latar: #F4F6F8;
+  --warna-kartu: #FFFFFF;
+  --warna-error: #C62828;
+  --warna-sukses: #2E7D32;
+  --warna-warning: #B26A00;
+  --warna-border: #D1D5DB;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--warna-latar);
+  color: var(--warna-teks);
+}
+
+a { color: var(--warna-primer); text-decoration: none; }
+
+/*******************************************************************
+ * SECTION BLOCK - KARTU UMUM
+ ******************************************************************/
+.kartu {
+  background: var(--warna-kartu);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+}
+
+/*******************************************************************
+ * SECTION BLOCK - LOGIN
+ ******************************************************************/
+.wrapLogin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.kartuLogin {
+  background: var(--warna-kartu);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.kartuLogin h1 { font-size: 20px; margin: 0 0 4px 0; }
+.subjudul { font-size: 13px; color: var(--warna-teks-muted); margin: 0 0 24px 0; }
+
+/*******************************************************************
+ * SECTION BLOCK - FORM
+ ******************************************************************/
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--warna-border);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: #FFFFFF;
+  font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus { border-color: var(--warna-primer); }
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0 16px;
+}
+
+/*******************************************************************
+ * SECTION BLOCK - TOMBOL
+ ******************************************************************/
+button, .tombol {
+  padding: 10px 16px;
+  background: var(--warna-primer);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button:hover, .tombol:hover { background: var(--warna-primer-gelap); }
+button:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+.tombolLebar { width: 100%; margin-top: 24px; }
+.tombolSekunder { background: #6B7280; }
+.tombolSekunder:hover { background: #4B5563; }
+.tombolBahaya { background: #EF4444; }
+.tombolBahaya:hover { background: #DC2626; }
+.tombolKecil { padding: 6px 10px; font-size: 12px; }
+
+/*******************************************************************
+ * SECTION BLOCK - PESAN STATUS
+ ******************************************************************/
+.pesan {
+  margin-top: 16px;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: none;
+}
+
+.pesan.error { background: #FDECEA; color: var(--warna-error); display: block; }
+.pesan.sukses { background: #E8F5E9; color: var(--warna-sukses); display: block; }
+.pesan.info { background: #E3F2FD; color: var(--warna-primer-gelap); display: block; }
+
+/*******************************************************************
+ * SECTION BLOCK - HEADER APLIKASI (dashboard & halaman dalam)
+ ******************************************************************/
+.headerApp {
+  background: var(--warna-kartu);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.headerApp .judul { font-size: 16px; font-weight: 700; }
+
+.headerApp .infoUser {
+  font-size: 13px;
+  color: var(--warna-teks-muted);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kontenHalaman {
+  padding: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.judulHalaman {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.linkKembali {
+  font-size: 13px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+/*******************************************************************
+ * SECTION BLOCK - GRID MENU (dashboard)
+ ******************************************************************/
+.gridMenu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.kartuMenu {
+  background: var(--warna-kartu);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  display: block;
+}
+
+.kartuMenu:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.kartuMenu .ikon { font-size: 24px; margin-bottom: 8px; }
+.kartuMenu .namaMenu { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--warna-teks); }
+.kartuMenu .deskripsiMenu { font-size: 12px; color: var(--warna-teks-muted); }
+
+/*******************************************************************
+ * SECTION BLOCK - TAB
+ ******************************************************************/
+.tabBar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--warna-border);
+  margin-bottom: 20px;
+}
+
+.tabItem {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warna-teks-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tabItem.aktif {
+  color: var(--warna-primer);
+  border-bottom-color: var(--warna-primer);
+}
+
+.tabKonten { display: none; }
+.tabKonten.aktif { display: block; }
+
+/*******************************************************************
+ * SECTION BLOCK - TABEL
+ ******************************************************************/
+.tabelWrap { overflow-x: auto; }
+
+table.tabelData {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.tabelData th, table.tabelData td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #EEF0F2;
+  white-space: nowrap;
+}
+
+table.tabelData th {
+  color: var(--warna-teks-muted);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+table.tabelData tbody tr:hover { background: #FAFBFC; }
+
+/*******************************************************************
+ * SECTION BLOCK - BADGE
+ ******************************************************************/
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge.hijau { background: #E8F5E9; color: var(--warna-sukses); }
+.badge.merah { background: #FDECEA; color: var(--warna-error); }
+.badge.abu { background: #F1F3F4; color: var(--warna-teks-muted); }
+.badge.kuning { background: #FFF3E0; color: var(--warna-warning); }
+
+/*******************************************************************
+ * SECTION BLOCK - GRID KARTU PEGAWAI (Absensi)
+ ******************************************************************/
+.gridPegawai {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.kartuPegawai {
+  background: var(--warna-kartu);
+  border: 1px solid var(--warna-border);
+  border-radius: 8px;
+  padding: 12px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.1s ease;
+}
+
+.kartuPegawai:hover { border-color: var(--warna-primer); }
+
+.kartuPegawai.sudahCheckIn { border-color: var(--warna-sukses); background: #F3FBF4; }
+.kartuPegawai.sudahKembali { border-color: var(--warna-teks-muted); background: #F5F5F5; opacity: 0.7; }
+
+.kartuPegawai .namaPegawai { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.kartuPegawai .infoPegawai { font-size: 11px; color: var(--warna-teks-muted); }
+
+/*******************************************************************
+ * SECTION BLOCK - PILIHAN SHIFT (tombol grid saat Check In)
+ ******************************************************************/
+.gridShift {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tombolShift {
+  background: #EEF2FF;
+  color: var(--warna-primer-gelap);
+  font-weight: 700;
+  padding: 12px 4px;
+}
+
+.tombolShift:hover { background: var(--warna-primer); color: #FFFFFF; }
+
+/*******************************************************************
+ * SECTION BLOCK - MODAL RINGAN (overlay konfirmasi)
+ ******************************************************************/
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+}
+
+.overlay.tampil { display: flex; }
+
+.kartuModal {
+  background: var(--warna-kartu);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.kartuModal h3 { margin: 0 0 12px 0; font-size: 15px; }
+
+/*******************************************************************
+ * SECTION BLOCK - UTILITAS
+ ******************************************************************/
+.mt16 { margin-top: 16px; }
+.mt24 { margin-top: 24px; }
+.teksMuted { color: var(--warna-teks-muted); font-size: 13px; }
+.hidden { display: none !important; }

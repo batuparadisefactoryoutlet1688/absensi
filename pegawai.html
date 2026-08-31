@@ -1,0 +1,158 @@
+<!-----------------------------------------------------------------
+  PROJECT      : Sistem Absensi
+  MODULE       : Pegawai
+  FILE         : pegawai.html
+  VERSION      : v1.0.0
+  AUTHOR       : Tim Pengembang
+  CREATED      : 2026-08-30
+  LAST UPDATE  : 2026-08-30
+
+  DESCRIPTION
+  ------------------------------------------------------------------
+  Dua tab: "Tambah Pegawai" (daftarkan karyawan baru) dan
+  "Update / Pindah" (cari pegawai, pindahkan PT/Divisi/Lantai, atau
+  nonaktifkan). Dropdown PT -> Divisi -> Lantai bersifat cascading
+  (Lantai hanya tampil kalau PT yang dipilih punya data lantai).
+------------------------------------------------------------------->
+
+<!------------------------------------------------------------------
+  VERSION HISTORY
+  ------------------------------------------------------------------
+  v1.0.0 - Initial Release.
+------------------------------------------------------------------->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pegawai - Sistem Absensi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="headerApp">
+    <div class="judul"><a href="dashboard.html">Sistem Absensi</a></div>
+    <div class="infoUser">
+      <span id="labelUserAktif">-</span>
+      <button class="tombolBahaya tombolKecil" id="tombolKeluar">Keluar</button>
+    </div>
+  </div>
+
+  <div class="kontenHalaman">
+    <a class="linkKembali" href="dashboard.html">&larr; Kembali ke Menu</a>
+    <h2 class="judulHalaman">Pegawai</h2>
+
+    <div class="tabBar">
+      <div class="tabItem aktif" data-tab="tabTambah">Tambah Pegawai</div>
+      <div class="tabItem" data-tab="tabUpdate">Update / Pindah</div>
+    </div>
+
+    <!-- ============================================================
+         TAB: TAMBAH PEGAWAI
+    ============================================================= -->
+    <div class="tabKonten aktif" id="tabTambah">
+      <div class="kartu" style="max-width:480px;">
+        <form id="formTambahPegawai">
+          <label for="tpNamaAsli">Nama Asli</label>
+          <input type="text" id="tpNamaAsli" required>
+
+          <label for="tpNickname">Nickname</label>
+          <input type="text" id="tpNickname" required>
+
+          <div class="formGrid">
+            <div>
+              <label for="tpPt">PT</label>
+              <select id="tpPt" required>
+                <option value="">Pilih PT</option>
+              </select>
+            </div>
+            <div>
+              <label for="tpDivisi">Divisi</label>
+              <select id="tpDivisi" required disabled>
+                <option value="">Pilih PT dulu</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="tpBlokLantai" class="hidden">
+            <label for="tpLantai">Lantai</label>
+            <select id="tpLantai">
+              <option value="">Pilih Lantai</option>
+            </select>
+          </div>
+
+          <button type="submit" id="tombolTambahPegawai" class="tombolLebar">Tambah Pegawai</button>
+
+          <div class="pesan" id="pesanTambahPegawai"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TAB: UPDATE / PINDAH
+    ============================================================= -->
+    <div class="tabKonten" id="tabUpdate">
+      <div class="kartu">
+        <label for="upCari">Cari nama pegawai</label>
+        <input type="text" id="upCari" placeholder="Ketik nama / nickname...">
+
+        <div class="tabelWrap mt16">
+          <table class="tabelData">
+            <thead>
+              <tr>
+                <th>Nama Asli</th>
+                <th>Nickname</th>
+                <th>PT</th>
+                <th>Divisi</th>
+                <th>Lantai</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tabelPegawaiBody">
+              <tr><td colspan="6" class="teksMuted">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: PINDAH PEGAWAI
+  ============================================================= -->
+  <div class="overlay" id="modalPindah">
+    <div class="kartuModal">
+      <h3 id="judulModalPindah">Pindahkan Pegawai</h3>
+
+      <label for="mpPt">PT Baru</label>
+      <select id="mpPt" required>
+        <option value="">Pilih PT</option>
+      </select>
+
+      <label for="mpDivisi">Divisi Baru</label>
+      <select id="mpDivisi" required disabled>
+        <option value="">Pilih PT dulu</option>
+      </select>
+
+      <div id="mpBlokLantai" class="hidden">
+        <label for="mpLantai">Lantai Baru</label>
+        <select id="mpLantai">
+          <option value="">Pilih Lantai</option>
+        </select>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:24px;">
+        <button type="button" id="tombolBatalPindah" class="tombolSekunder" style="flex:1;">Batal</button>
+        <button type="button" id="tombolSimpanPindah" style="flex:1;">Pindahkan</button>
+      </div>
+
+      <div class="pesan" id="pesanModalPindah"></div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/pegawai.js"></script>
+</body>
+</html>
