@@ -35,7 +35,7 @@ let daftarShiftCache_ = [];
 let petaPegawai_ = {};
 let daftarAbsensiHariIni_ = [];
 
-let idKaryawanUntukCheckIn_ = null;
+let idKaryawanTerpilihCheckIn_ = [];
 let dataUntukCheckKembali_ = null;
 let dataUntukUpdate_ = null;
 
@@ -212,7 +212,9 @@ async function muatDaftarAbsensi_() {
   });
 
   daftarAbsensiHariIni_ = hasilAbsensi.data;
+  idKaryawanTerpilihCheckIn_ = [];
   renderGridAbsensi_();
+  perbaruiLabelJumlahTerpilihCheckIn_();
 }
 
 /******************************************************************
@@ -237,14 +239,19 @@ function renderGridAbsensi_() {
     if (!item.sudahCheckIn) {
       adaCheckIn = true;
       const kartu = buatKartuPegawai_(item.nickname, "Belum Check In", "");
-      kartu.addEventListener("click", function () { bukaModalShift_(item.idKaryawan, item.nickname); });
+      if (idKaryawanTerpilihCheckIn_.indexOf(item.idKaryawan) !== -1) {
+        kartu.classList.add("terpilih");
+      }
+      kartu.addEventListener("click", function () {
+        toggleKaryawanTerpilihCheckIn_(item.idKaryawan, kartu);
+      });
       gridCheckIn.appendChild(kartu);
       return;
     }
 
     if (!item.sudahCheckKembali) {
       adaCheckKembali = true;
-      const kartuKembali = buatKartuPegawai_(item.nickname, "Masuk " + item.jamMasuk, "sudahCheckIn");
+      const kartuKembali = buatKartuPegawaiShift_(item.nickname, cariKodeShift_(item.idShift), "✓ " + item.jamMasuk, "sudahCheckIn");
       kartuKembali.addEventListener("click", function () {
         bukaModalKembali_(item.idAbsensi, item.nickname, item.jamMasuk);
       });
@@ -252,8 +259,8 @@ function renderGridAbsensi_() {
     }
 
     adaUpdate = true;
-    const infoUpdate = "Masuk " + item.jamMasuk + (item.sudahCheckKembali ? " / Kembali " + item.jamKembali : "");
-    const kartuUpdate = buatKartuPegawai_(item.nickname, infoUpdate, item.sudahCheckKembali ? "sudahKembali" : "sudahCheckIn");
+    const infoUpdate = "✓ " + item.jamMasuk + (item.sudahCheckKembali ? " / ↩ " + item.jamKembali : "");
+    const kartuUpdate = buatKartuPegawaiShift_(item.nickname, cariKodeShift_(item.idShift), infoUpdate, item.sudahCheckKembali ? "sudahKembali" : "sudahCheckIn");
     kartuUpdate.addEventListener("click", function () {
       bukaModalUpdate_(item.idAbsensi, item.nickname);
     });
@@ -263,6 +270,31 @@ function renderGridAbsensi_() {
   if (!adaCheckIn) gridCheckIn.innerHTML = '<p class="teksMuted">Semua pegawai sudah Check In.</p>';
   if (!adaCheckKembali) gridCheckKembali.innerHTML = '<p class="teksMuted">Tidak ada yang menunggu Check Kembali.</p>';
   if (!adaUpdate) gridUpdate.innerHTML = '<p class="teksMuted">Belum ada data absensi hari ini.</p>';
+}
+
+/******************************************************************
+ * Function : cariKodeShift_(idShift)
+ * Tujuan   : Mencari KODE_SHIFT (mis. "P") dari ID_SHIFT (mis. "SH001").
+ ******************************************************************/
+function cariKodeShift_(idShift) {
+  const shift = daftarShiftCache_.filter(function (s) { return s.ID_SHIFT === idShift; })[0];
+  return shift ? shift.KODE_SHIFT : "";
+}
+
+/******************************************************************
+ * Function : buatKartuPegawaiShift_(nama, kodeShift, info, kelasEkstra)
+ * Tujuan   : Sama seperti buatKartuPegawai_ tapi dengan baris shift
+ *            di tengah (dipakai untuk pegawai yang sudah Check In,
+ *            sesuai format Blueprint: nama / shift / ✓ jam).
+ ******************************************************************/
+function buatKartuPegawaiShift_(nama, kodeShift, info, kelasEkstra) {
+  const kartu = document.createElement("div");
+  kartu.className = "kartuPegawai" + (kelasEkstra ? " " + kelasEkstra : "");
+  kartu.innerHTML =
+    '<div class="namaPegawai">' + nama + '</div>' +
+    '<div class="shiftPegawai">' + (kodeShift || "-") + '</div>' +
+    '<div class="infoPegawai">' + info + '</div>';
+  return kartu;
 }
 
 /******************************************************************
@@ -279,69 +311,123 @@ function buatKartuPegawai_(nama, info, kelasEkstra) {
 }
 
 /*******************************************************************
- * MODAL: PILIH SHIFT (CHECK IN)
+ * PILIH SHIFT MASSAL (CHECK IN MULTI-SELECT)
  * -----------------------------------------------------------------
+ * Alur baru: klik nama-nama pegawai dulu (toggle terpilih/tidak,
+ * bisa lebih dari satu), lalu klik satu tombol shift di panel bawah
+ * grid -> semua pegawai yang terpilih di-Check In sekaligus dengan
+ * shift yang sama.
  ******************************************************************/
 
 /******************************************************************
- * Function : bukaModalShift_(idKaryawan, nickname)
+ * Function : toggleKaryawanTerpilihCheckIn_(idKaryawan, kartuEl)
+ * Tujuan   : Menandai/membatalkan tanda pegawai terpilih untuk
+ *            Check In massal saat kartunya diklik.
  ******************************************************************/
-function bukaModalShift_(idKaryawan, nickname) {
-  idKaryawanUntukCheckIn_ = idKaryawan;
-  document.getElementById("judulModalShift").textContent = "Pilih Shift - " + nickname;
-  document.getElementById("pesanModalShift").className = "pesan";
+function toggleKaryawanTerpilihCheckIn_(idKaryawan, kartuEl) {
+  const index = idKaryawanTerpilihCheckIn_.indexOf(idKaryawan);
+  if (index === -1) {
+    idKaryawanTerpilihCheckIn_.push(idKaryawan);
+    kartuEl.classList.add("terpilih");
+  } else {
+    idKaryawanTerpilihCheckIn_.splice(index, 1);
+    kartuEl.classList.remove("terpilih");
+  }
+  perbaruiLabelJumlahTerpilihCheckIn_();
+}
 
-  const grid = document.getElementById("gridPilihanShift");
+/******************************************************************
+ * Function : perbaruiLabelJumlahTerpilihCheckIn_()
+ * Tujuan   : Memperbarui teks jumlah pegawai yang sedang terpilih
+ *            di atas panel pilihan shift.
+ ******************************************************************/
+function perbaruiLabelJumlahTerpilihCheckIn_() {
+  const label = document.getElementById("labelJumlahTerpilihCheckIn");
+  const jumlah = idKaryawanTerpilihCheckIn_.length;
+  label.textContent = jumlah === 0 ? "Belum ada pegawai dipilih" : jumlah + " pegawai dipilih";
+  document.getElementById("pesanCheckInMassal").className = "pesan";
+}
+
+/******************************************************************
+ * Function : isiGridPilihanShiftCheckIn_()
+ * Tujuan   : Mengisi tombol-tombol shift di panel Check In massal.
+ *            Dipanggil sekali saat halaman dimuat (daftar shift
+ *            tidak berubah-ubah dalam satu sesi).
+ ******************************************************************/
+function isiGridPilihanShiftCheckIn_() {
+  const grid = document.getElementById("gridPilihanShiftCheckIn");
   grid.innerHTML = "";
   daftarShiftCache_.forEach(function (shift) {
     const tombol = document.createElement("button");
     tombol.type = "button";
     tombol.className = "tombolShift";
     tombol.textContent = shift.KODE_SHIFT;
-    tombol.addEventListener("click", function () { jalankanCheckIn_(shift.ID_SHIFT); });
+    tombol.addEventListener("click", function () { jalankanCheckInMassal_(shift.ID_SHIFT); });
     grid.appendChild(tombol);
   });
-
-  document.getElementById("modalShift").classList.add("tampil");
 }
 
 /******************************************************************
- * Function : jalankanCheckIn_(idShift)
- * Tujuan   : Mengirim Check In ke API, pakai PT/Divisi/Lantai asli
- *            milik pegawai (bukan filter), sesuai posisi aktualnya.
+ * Function : jalankanCheckInMassal_(idShift)
+ * Tujuan   : Mengirim Check In untuk SELURUH pegawai yang terpilih,
+ *            satu per satu (berurutan, bukan paralel, supaya ID
+ *            absensi yang di-generate di backend tidak bentrok),
+ *            memakai PT/Divisi/Lantai asli milik masing-masing
+ *            pegawai (bukan filter).
  ******************************************************************/
-async function jalankanCheckIn_(idShift) {
-  const pegawai = petaPegawai_[idKaryawanUntukCheckIn_];
+async function jalankanCheckInMassal_(idShift) {
+  const kotak = document.getElementById("pesanCheckInMassal");
+
+  if (idKaryawanTerpilihCheckIn_.length === 0) {
+    kotak.textContent = "Pilih minimal satu pegawai dulu.";
+    kotak.className = "pesan error";
+    return;
+  }
+
   const tanggal = formatTanggalUntukApi_(document.getElementById("fTanggal").value);
   const jamManual = document.getElementById("fJamManualMasuk").value;
+  const daftarTerpilih = idKaryawanTerpilihCheckIn_.slice();
 
-  try {
-    const hasil = await panggilApi_("checkIn", {
-      tanggal: tanggal,
-      idKaryawan: idKaryawanUntukCheckIn_,
-      idPt: pegawai.PT,
-      idDivisi: pegawai.DIVISI,
-      idLantai: pegawai.LANTAI === "-" ? "" : pegawai.LANTAI,
-      idShift: idShift,
-      jamManual: jamManual,
-      username: sesiAktif_.username,
-      penandaAdmin: sesiAktif_.penandaAdmin
-    });
+  kotak.textContent = "Memproses Check In untuk " + daftarTerpilih.length + " pegawai...";
+  kotak.className = "pesan info";
 
-    if (!hasil.success) {
-      const kotak = document.getElementById("pesanModalShift");
-      kotak.textContent = hasil.message;
-      kotak.className = "pesan error";
-      return;
+  let jumlahBerhasil = 0;
+  const pesanGagal = [];
+
+  for (const idKaryawan of daftarTerpilih) {
+    const pegawai = petaPegawai_[idKaryawan];
+    try {
+      const hasil = await panggilApi_("checkIn", {
+        tanggal: tanggal,
+        idKaryawan: idKaryawan,
+        idPt: pegawai.PT,
+        idDivisi: pegawai.DIVISI,
+        idLantai: pegawai.LANTAI === "-" ? "" : pegawai.LANTAI,
+        idShift: idShift,
+        jamManual: jamManual,
+        username: sesiAktif_.username,
+        penandaAdmin: sesiAktif_.penandaAdmin
+      });
+
+      if (hasil.success) {
+        jumlahBerhasil++;
+      } else {
+        pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + hasil.message);
+      }
+    } catch (error) {
+      pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + error.message);
     }
+  }
 
-    document.getElementById("modalShift").classList.remove("tampil");
-    muatDaftarAbsensi_();
-  } catch (error) {
-    const kotak = document.getElementById("pesanModalShift");
-    kotak.textContent = "[CHECK IN] " + error.message;
+  if (pesanGagal.length === 0) {
+    kotak.textContent = jumlahBerhasil + " pegawai berhasil Check In (Shift sama).";
+    kotak.className = "pesan sukses";
+  } else {
+    kotak.textContent = jumlahBerhasil + " berhasil, " + pesanGagal.length + " gagal — " + pesanGagal.join("; ");
     kotak.className = "pesan error";
   }
+
+  muatDaftarAbsensi_();
 }
 
 /*******************************************************************
@@ -521,6 +607,7 @@ async function jalankanKoreksiShift_(idShiftBaru) {
 
   const hasilShift = await panggilApi_("daftarShift", {});
   if (hasilShift.success) daftarShiftCache_ = hasilShift.data;
+  isiGridPilihanShiftCheckIn_();
 
   await muatDropdownPt_();
 
@@ -529,8 +616,10 @@ async function jalankanKoreksiShift_(idShiftBaru) {
   document.getElementById("fDivisi").addEventListener("change", muatDaftarAbsensi_);
   document.getElementById("fLantai").addEventListener("change", muatDaftarAbsensi_);
 
-  document.getElementById("tombolBatalShift").addEventListener("click", function () {
-    document.getElementById("modalShift").classList.remove("tampil");
+  document.getElementById("tombolBatalPilihanCheckIn").addEventListener("click", function () {
+    idKaryawanTerpilihCheckIn_ = [];
+    renderGridAbsensi_();
+    perbaruiLabelJumlahTerpilihCheckIn_();
   });
 
   document.getElementById("tombolBatalKembali").addEventListener("click", function () {
