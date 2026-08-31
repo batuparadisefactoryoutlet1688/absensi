@@ -324,7 +324,34 @@ table.tabelData tbody tr:hover { background: #FAFBFC; }
 .kartuPegawai.sudahCheckIn { border-color: var(--warna-sukses); background: #F3FBF4; }
 .kartuPegawai.sudahKembali { border-color: var(--warna-teks-muted); background: #F5F5F5; opacity: 0.7; }
 
+.kartuPegawai.terpilih {
+  border-color: var(--warna-primer);
+  border-width: 2px;
+  background: #E3F2FD;
+  position: relative;
+}
+
+.kartuPegawai.terpilih::after {
+  content: "✓";
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: var(--warna-primer);
+  font-weight: 700;
+  font-size: 12px;
+}
+
 .kartuPegawai .namaPegawai { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.kartuPegawai .shiftPegawai {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--warna-primer-gelap);
+  background: #EEF2FF;
+  padding: 1px 8px;
+  border-radius: 999px;
+  margin-bottom: 4px;
+}
 .kartuPegawai .infoPegawai { font-size: 11px; color: var(--warna-teks-muted); }
 
 /*******************************************************************
