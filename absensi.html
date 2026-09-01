@@ -2,23 +2,36 @@
   PROJECT      : Sistem Absensi
   MODULE       : Absensi
   FILE         : absensi.html
-  VERSION      : v1.0.0
+  VERSION      : v1.1.0
   AUTHOR       : Tim Pengembang
   CREATED      : 2026-08-30
-  LAST UPDATE  : 2026-08-30
+  LAST UPDATE  : 2026-08-31
 
   DESCRIPTION
   ------------------------------------------------------------------
   Halaman inti Aplikasi Absensi. Filter Tanggal/PT/Divisi/Lantai
-  dipilih SEKALI di atas, lalu 3 tab: Check In, Check Kembali,
-  Update. Pegawai ditampilkan sebagai card (klik, bukan ketik nama)
-  sesuai Blueprint Aturan 14 & 31.
+  dipilih SEKALI di atas, lalu 4 tab: Absen Masuk, Absen Istirahat,
+  Telat, Update. Pegawai ditampilkan sebagai card (klik, bukan
+  ketik nama) sesuai Blueprint Aturan 14 & 31. Tombol aksi di Absen
+  Masuk/Telat menggabungkan Shift + Status non-hadir dalam satu grid
+  berwarna.
 ------------------------------------------------------------------->
 
 <!------------------------------------------------------------------
   VERSION HISTORY
   ------------------------------------------------------------------
-  v1.0.0 - Initial Release.
+  v1.0.0
+  - Initial Release (Check In / Check Kembali / Update, single shift only).
+
+  v1.1.0
+  - Rename tab: Check In -> Absen Masuk, Check Kembali -> Absen Istirahat.
+  - Menambahkan tab baru: Telat (checkIn + keterangan menit telat).
+  - Panel aksi di Absen Masuk sekarang gabungan Shift + Status
+    non-hadir (OFF/Izin/Sakit/Cuti/Dinas/Alpa) dalam satu grid.
+  - Tab Update sekarang menampilkan SEMUA pegawai (roster penuh),
+    bukan cuma yang sudah punya data absensi hari itu.
+  - Menambahkan modal baru "Input Status Langsung" untuk pegawai
+    di tab Update yang belum punya data absensi hari ini.
 ------------------------------------------------------------------->
 
 <!DOCTYPE html>
@@ -80,46 +93,78 @@
     </div>
 
     <!-- ============================================================
-         TAB CHECK IN / CHECK KEMBALI / UPDATE
+         TAB: ABSEN MASUK / ABSEN ISTIRAHAT / TELAT / UPDATE
     ============================================================= -->
     <div class="tabBar mt24">
-      <div class="tabItem aktif" data-tab="tabCheckIn">Check In</div>
-      <div class="tabItem" data-tab="tabCheckKembali">Check Kembali</div>
+      <div class="tabItem aktif" data-tab="tabAbsenMasuk">Absen Masuk</div>
+      <div class="tabItem" data-tab="tabAbsenIstirahat">Absen Istirahat</div>
+      <div class="tabItem" data-tab="tabTelat">Telat</div>
       <div class="tabItem" data-tab="tabUpdateAbsensi">Update</div>
     </div>
 
-    <div class="tabKonten aktif" id="tabCheckIn">
-      <p class="teksMuted">Klik nama-nama pegawai yang belum Check In (bisa pilih lebih dari satu), lalu klik shift di bawah untuk Check In sekaligus.</p>
-      <div class="gridPegawai" id="gridCheckIn"></div>
+    <!-- ========================================================
+         TAB: ABSEN MASUK
+    ========================================================= -->
+    <div class="tabKonten aktif" id="tabAbsenMasuk">
+      <p class="teksMuted">Klik nama-nama pegawai yang belum absen (bisa pilih lebih dari satu), lalu klik shift atau status di bawah.</p>
+      <div class="gridPegawai" id="gridAbsenMasuk"></div>
 
-      <div class="kartu mt24" id="panelCheckInMassal">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-          <strong id="labelJumlahTerpilihCheckIn">Belum ada pegawai dipilih</strong>
-          <button type="button" class="tombolSekunder tombolKecil" id="tombolBatalPilihanCheckIn">Batal Pilih</button>
+      <div class="kartu mt24">
+        <div class="panelAksiMassal">
+          <strong id="labelJumlahTerpilihMasuk">Belum ada pegawai dipilih</strong>
+          <button type="button" class="tombolSekunder tombolKecil" id="tombolBatalPilihanMasuk">Batal Pilih</button>
         </div>
-        <p class="teksMuted mt16">Pilih shift untuk pegawai yang dipilih di atas:</p>
-        <div class="gridShift" id="gridPilihanShiftCheckIn"></div>
-        <div class="pesan" id="pesanCheckInMassal"></div>
+        <p class="teksMuted mt16">Pilih Shift (Hadir) atau Status (non-hadir) untuk pegawai yang dipilih di atas:</p>
+        <div class="gridAksi" id="gridAksiMasuk"></div>
+        <div class="pesan" id="pesanAbsenMasuk"></div>
       </div>
     </div>
 
-    <div class="tabKonten" id="tabCheckKembali">
-      <p class="teksMuted">Klik nama pegawai yang sudah Check In dan belum Kembali.</p>
-      <div class="gridPegawai" id="gridCheckKembali"></div>
+    <!-- ========================================================
+         TAB: ABSEN ISTIRAHAT
+    ========================================================= -->
+    <div class="tabKonten" id="tabAbsenIstirahat">
+      <p class="teksMuted">Hanya menampilkan pegawai yang sudah Absen Masuk (shift) dan belum kembali.</p>
+      <div class="gridPegawai" id="gridAbsenIstirahat"></div>
     </div>
 
+    <!-- ========================================================
+         TAB: TELAT
+    ========================================================= -->
+    <div class="tabKonten" id="tabTelat">
+      <p class="teksMuted">Klik nama-nama pegawai yang telat masuk (bisa pilih lebih dari satu), isi menit telat, lalu klik shift.</p>
+      <div class="gridPegawai" id="gridTelat"></div>
+
+      <div class="kartu mt24">
+        <div class="panelAksiMassal">
+          <strong id="labelJumlahTerpilihTelat">Belum ada pegawai dipilih</strong>
+          <button type="button" class="tombolSekunder tombolKecil" id="tombolBatalPilihanTelat">Batal Pilih</button>
+        </div>
+
+        <label for="tMenitTelat">Menit Telat</label>
+        <input type="number" id="tMenitTelat" min="1" placeholder="contoh: 15">
+
+        <p class="teksMuted mt16">Pilih Shift untuk pegawai yang dipilih di atas:</p>
+        <div class="gridAksi" id="gridAksiTelat"></div>
+        <div class="pesan" id="pesanTelat"></div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         TAB: UPDATE (roster penuh)
+    ========================================================= -->
     <div class="tabKonten" id="tabUpdateAbsensi">
-      <p class="teksMuted">Klik nama pegawai yang absensinya hari ini mau di-update / dikoreksi.</p>
+      <p class="teksMuted">Menampilkan semua pegawai. Yang sudah punya data absensi hari ini bisa di-update/koreksi; yang belum bisa langsung diisi status.</p>
       <div class="gridPegawai" id="gridUpdate"></div>
     </div>
   </div>
 
   <!-- ============================================================
-       MODAL: KONFIRMASI CHECK KEMBALI
+       MODAL: KONFIRMASI ABSEN ISTIRAHAT (Check Kembali)
   ============================================================= -->
   <div class="overlay" id="modalKembali">
     <div class="kartuModal">
-      <h3 id="judulModalKembali">Check Kembali</h3>
+      <h3 id="judulModalKembali">Absen Istirahat</h3>
       <p class="teksMuted" id="infoModalKembali"></p>
       <div style="display:flex; gap:8px; margin-top:16px;">
         <button type="button" id="tombolBatalKembali" class="tombolSekunder" style="flex:1;">Batal</button>
@@ -130,7 +175,7 @@
   </div>
 
   <!-- ============================================================
-       MODAL: UPDATE / KOREKSI ABSENSI
+       MODAL: UPDATE / KOREKSI (untuk pegawai yang SUDAH ada absensi)
   ============================================================= -->
   <div class="overlay" id="modalUpdate">
     <div class="kartuModal">
@@ -172,11 +217,25 @@
 
       <div class="tabKonten" id="subKoreksiShift">
         <label>Pilih Shift Baru</label>
-        <div class="gridShift" id="gridKoreksiShift"></div>
+        <div class="gridAksi" id="gridKoreksiShift"></div>
       </div>
 
       <button type="button" class="tombolSekunder tombolLebar mt16" id="tombolTutupModalUpdate">Tutup</button>
       <div class="pesan" id="pesanModalUpdate"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: INPUT STATUS LANGSUNG (untuk pegawai yang BELUM ada
+       absensi hari ini, diklik dari tab Update)
+  ============================================================= -->
+  <div class="overlay" id="modalInputLangsung">
+    <div class="kartuModal">
+      <h3 id="judulModalInputLangsung">Input Status</h3>
+      <p class="teksMuted">Pegawai ini belum punya data absensi hari ini. Untuk Hadir/Shift, gunakan tab Absen Masuk atau Telat. Untuk status non-hadir, pilih di bawah:</p>
+      <div class="gridAksi" id="gridStatusLangsung"></div>
+      <button type="button" class="tombolSekunder tombolLebar mt16" id="tombolTutupModalInputLangsung">Tutup</button>
+      <div class="pesan" id="pesanModalInputLangsung"></div>
     </div>
   </div>
 
