@@ -2,10 +2,10 @@
  * PROJECT      : Sistem Absensi
  * MODULE       : Shared Stylesheet
  * FILE         : css/style.css
- * VERSION      : v1.0.0
+ * VERSION      : v1.1.0
  * AUTHOR       : Tim Pengembang
  * CREATED      : 2026-08-30
- * LAST UPDATE  : 2026-08-30
+ * LAST UPDATE  : 2026-08-31
  *
  * DESCRIPTION
  * -----------------------------------------------------------------
@@ -19,6 +19,12 @@
  * -----------------------------------------------------------------
  * v1.0.0
  * - Initial Release.
+ *
+ * v1.1.0
+ * - Menambahkan warna per kode shift/status (P/S/M/PS/FT.../OFF/
+ *   Izin/Sakit/Cuti/Dinas/Alpa) lewat [data-kode="..."], dipakai
+ *   tombol aksi gabungan di halaman Absensi.
+ * - Menambahkan style untuk tab "Telat" dan roster penuh di Update.
  ******************************************************************/
 
 /*******************************************************************
@@ -237,6 +243,7 @@ button:disabled { background: #9CA3AF; cursor: not-allowed; }
   gap: 4px;
   border-bottom: 1px solid var(--warna-border);
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .tabItem {
@@ -323,6 +330,8 @@ table.tabelData tbody tr:hover { background: #FAFBFC; }
 
 .kartuPegawai.sudahCheckIn { border-color: var(--warna-sukses); background: #F3FBF4; }
 .kartuPegawai.sudahKembali { border-color: var(--warna-teks-muted); background: #F5F5F5; opacity: 0.7; }
+.kartuPegawai.nonHadir { border-color: var(--warna-warning); background: #FFF8ED; }
+.kartuPegawai.belumAda { border-style: dashed; opacity: 0.85; }
 
 .kartuPegawai.terpilih {
   border-color: var(--warna-primer);
@@ -355,23 +364,63 @@ table.tabelData tbody tr:hover { background: #FAFBFC; }
 .kartuPegawai .infoPegawai { font-size: 11px; color: var(--warna-teks-muted); }
 
 /*******************************************************************
- * SECTION BLOCK - PILIHAN SHIFT (tombol grid saat Check In)
+ * SECTION BLOCK - PANEL AKSI MASSAL (Absen Masuk / Telat)
  ******************************************************************/
-.gridShift {
+.panelAksiMassal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/*******************************************************************
+ * SECTION BLOCK - TOMBOL AKSI (SHIFT & STATUS) - GRID BERWARNA
+ * -----------------------------------------------------------------
+ * Dipakai untuk grid pilihan shift + status di tab Absen Masuk,
+ * Telat, dan Koreksi Shift. Warna diatur per kode lewat atribut
+ * data-kode, supaya mudah dibaca sekilas (hijau = shift pagi/siang,
+ * kuning-olive = fulltime, merah/pink/ungu = status non-hadir).
+ ******************************************************************/
+.gridAksi {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
 
-.tombolShift {
+.tombolAksi {
   background: #EEF2FF;
   color: var(--warna-primer-gelap);
   font-weight: 700;
-  padding: 12px 4px;
+  padding: 14px 4px;
+  text-align: center;
+  border-radius: 8px;
 }
 
-.tombolShift:hover { background: var(--warna-primer); color: #FFFFFF; }
+.tombolAksi:hover { filter: brightness(0.92); }
+
+/* Shift: Pagi/Siang/Malam/Pagi-Siang - hijau */
+.tombolAksi[data-kode="P"]  { background: #43A047; color: #FFFFFF; }
+.tombolAksi[data-kode="S"]  { background: #66BB6A; color: #FFFFFF; }
+.tombolAksi[data-kode="PS"] { background: #A5D6A7; color: #1B3A1D; }
+.tombolAksi[data-kode="M"]  { background: #A5D6A7; color: #1B3A1D; }
+
+/* Shift: Fulltime - kuning ke olive gelap */
+.tombolAksi[data-kode="FT"]    { background: #FDD835; color: #4A3B00; }
+.tombolAksi[data-kode="FT 1"]  { background: #FDD835; color: #4A3B00; }
+.tombolAksi[data-kode="FT 2"]  { background: #C9B037; color: #FFFFFF; }
+.tombolAksi[data-kode="FN"]    { background: #C9A227; color: #FFFFFF; }
+.tombolAksi[data-kode="FMid"]  { background: #A98307; color: #FFFFFF; }
+.tombolAksi[data-kode="FM"]    { background: #8B6F1A; color: #FFFFFF; }
+
+/* Status non-hadir - merah/pink/ungu/oranye/biru/abu */
+.tombolAksi[data-kode="OFF"]  { background: #E53935; color: #FFFFFF; }
+.tombolAksi[data-kode="C"]    { background: #F48FB1; color: #4A0E28; }
+.tombolAksi[data-kode="I"]    { background: #8E24AA; color: #FFFFFF; }
+.tombolAksi[data-kode="SKT"]  { background: #FB8C00; color: #FFFFFF; }
+.tombolAksi[data-kode="D"]    { background: #1E88E5; color: #FFFFFF; }
+.tombolAksi[data-kode="A"]    { background: #424242; color: #FFFFFF; }
 
 /*******************************************************************
  * SECTION BLOCK - MODAL RINGAN (overlay konfirmasi)
@@ -394,7 +443,9 @@ table.tabelData tbody tr:hover { background: #FAFBFC; }
   border-radius: var(--radius);
   padding: 24px;
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .kartuModal h3 { margin: 0 0 12px 0; font-size: 15px; }
