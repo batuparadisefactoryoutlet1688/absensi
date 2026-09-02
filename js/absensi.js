@@ -2,18 +2,15 @@
  * PROJECT      : Sistem Absensi
  * MODULE       : Absensi Page Logic
  * FILE         : js/absensi.js
- * VERSION      : v1.1.0
+ * VERSION      : v1.2.0
  * AUTHOR       : Tim Pengembang
  * CREATED      : 2026-08-30
- * LAST UPDATE  : 2026-08-31
+ * LAST UPDATE  : 2026-09-02
  *
  * DESCRIPTION
  * -----------------------------------------------------------------
  * Logic khusus absensi.html: filter Tanggal/PT/Divisi/Lantai, dan
- * 4 tab: Absen Masuk (shift+status gabungan, multi-select), Absen
- * Istirahat (hanya yang sudah shift-in), Telat (checkIn + menit
- * telat), Update (roster penuh - update kejadian ATAU input status
- * langsung untuk yang belum absen).
+ * 4 tab: Absen Masuk, Absen Istirahat, Telat, Update.
  ******************************************************************/
 
 /*******************************************************************
@@ -23,13 +20,15 @@
  * - Initial Release (Check In / Check Kembali / Update, shift saja).
  *
  * v1.1.0
- * - Rename: Check In -> Absen Masuk, Check Kembali -> Absen Istirahat.
- * - Menambahkan tab Telat (checkIn dengan keterangan menit telat).
- * - Panel aksi Absen Masuk sekarang gabungan tombol Shift + Status
- *   non-hadir dalam satu grid (data-kode untuk pewarnaan CSS).
- * - Tab Update sekarang roster penuh (semua pegawai), dengan
- *   percabangan: sudah ada absensi -> modal Update lama; belum ada
- *   -> modal Input Status Langsung baru.
+ * - Rename tab, tambah Telat, gabung tombol Shift+Status, Update roster penuh.
+ *
+ * v1.2.0
+ * - BUGFIX: menambahkan kunciUi_() (guard overlay) di SEMUA fungsi
+ *   yang mengirim data ke server (Absen Masuk, Telat, Absen
+ *   Istirahat, Update, Koreksi, Input Status Langsung). Mencegah
+ *   klik berulang saat koneksi lambat memicu data tersimpan
+ *   dobel/triple, dan mencegah race condition yang membuat grid
+ *   tampil tidak sinkron setelah proses selesai.
  ******************************************************************/
 
 /*******************************************************************
@@ -52,6 +51,24 @@ let terpilih_ = { masuk: [], telat: [] };
 let dataUntukCheckKembali_ = null;
 let dataUntukUpdate_ = null;
 let idKaryawanUntukInputLangsung_ = null;
+let sedangMemproses_ = false;
+
+/*******************************************************************
+ * GUARD UI (cegah klik ganda)
+ * -----------------------------------------------------------------
+ ******************************************************************/
+
+/******************************************************************
+ * Function : kunciUi_(kunci)
+ * Tujuan   : Mengunci/membuka seluruh interaksi klik selama proses
+ *            async ke server berjalan, lewat overlay transparan
+ *            (#guardOverlay) yang menangkap semua klik.
+ ******************************************************************/
+function kunciUi_(kunci) {
+  sedangMemproses_ = kunci;
+  const guard = document.getElementById("guardOverlay");
+  if (guard) guard.classList.toggle("tampil", kunci);
+}
 
 /*******************************************************************
  * UTILITAS TANGGAL
@@ -60,8 +77,6 @@ let idKaryawanUntukInputLangsung_ = null;
 
 /******************************************************************
  * Function : formatTanggalUntukApi_(nilaiInputDate)
- * Tujuan   : Mengubah value <input type="date"> ("yyyy-mm-dd")
- *            menjadi format dd/MM/yyyy yang dipakai backend.
  ******************************************************************/
 function formatTanggalUntukApi_(nilaiInputDate) {
   const bagian = nilaiInputDate.split("-");
@@ -189,8 +204,6 @@ function ambilFilterAktif_() {
 
 /******************************************************************
  * Function : muatDaftarAbsensi_()
- * Tujuan   : Mengambil data pegawai (roster + posisi asli tiap orang)
- *            + status absensi hari ini, lalu render 4 grid.
  ******************************************************************/
 async function muatDaftarAbsensi_() {
   const filter = ambilFilterAktif_();
@@ -239,8 +252,6 @@ async function muatDaftarAbsensi_() {
 
 /******************************************************************
  * Function : buatKartuPegawai_(nama, badge, info, kelasEkstra)
- * Tujuan   : Membuat elemen card pegawai. badge = kode shift/nama
- *            status (opsional), info = teks kecil di bawahnya.
  ******************************************************************/
 function buatKartuPegawai_(nama, badge, info, kelasEkstra) {
   const kartu = document.createElement("div");
@@ -285,9 +296,6 @@ function renderSemuaGrid_() {
 
 /******************************************************************
  * Function : renderGridPilihMasuk_(idGrid, kunciTerpilih)
- * Tujuan   : Dipakai untuk grid Absen Masuk & Telat - keduanya
- *            menampilkan pegawai yang BELUM absen, tapi punya
- *            state pilihan terpisah (kunciTerpilih: "masuk"/"telat").
  ******************************************************************/
 function renderGridPilihMasuk_(idGrid, kunciTerpilih) {
   const grid = document.getElementById(idGrid);
@@ -313,8 +321,6 @@ function renderGridPilihMasuk_(idGrid, kunciTerpilih) {
 
 /******************************************************************
  * Function : renderGridAbsenIstirahat_()
- * Tujuan   : Hanya menampilkan pegawai yang sudah Absen Masuk lewat
- *            shift (punya JAM_MASUK) dan belum Absen Istirahat.
  ******************************************************************/
 function renderGridAbsenIstirahat_() {
   const grid = document.getElementById("gridAbsenIstirahat");
@@ -337,9 +343,6 @@ function renderGridAbsenIstirahat_() {
 
 /******************************************************************
  * Function : renderGridUpdate_()
- * Tujuan   : Menampilkan SEMUA pegawai (roster penuh). Yang sudah
- *            ada absensi -> klik buka modal Update; yang belum ->
- *            klik buka modal Input Status Langsung.
  ******************************************************************/
 function renderGridUpdate_() {
   const grid = document.getElementById("gridUpdate");
@@ -390,6 +393,8 @@ function renderGridUpdate_() {
  * Function : toggleTerpilih_(kunci, idKaryawan, kartuEl)
  ******************************************************************/
 function toggleTerpilih_(kunci, idKaryawan, kartuEl) {
+  if (sedangMemproses_) return;
+
   const arr = terpilih_[kunci];
   const index = arr.indexOf(idKaryawan);
   if (index === -1) {
@@ -435,8 +440,6 @@ function buatTombolAksi_(kode, teks, onClick) {
 
 /******************************************************************
  * Function : daftarStatusNonHadir_()
- * Tujuan   : Status yang relevan untuk input langsung (bukan Hadir,
- *            bukan kategori UPDATE seperti Tidak Kembali).
  ******************************************************************/
 function daftarStatusNonHadir_() {
   return daftarStatusCache_.filter(function (s) {
@@ -446,7 +449,6 @@ function daftarStatusNonHadir_() {
 
 /******************************************************************
  * Function : isiGridAksiMasuk_()
- * Tujuan   : Mengisi panel Absen Masuk dengan tombol Shift + Status.
  ******************************************************************/
 function isiGridAksiMasuk_() {
   const grid = document.getElementById("gridAksiMasuk");
@@ -467,7 +469,6 @@ function isiGridAksiMasuk_() {
 
 /******************************************************************
  * Function : isiGridAksiTelat_()
- * Tujuan   : Mengisi panel Telat dengan tombol Shift saja.
  ******************************************************************/
 function isiGridAksiTelat_() {
   const grid = document.getElementById("gridAksiTelat");
@@ -487,10 +488,12 @@ function isiGridAksiTelat_() {
 
 /******************************************************************
  * Function : jalankanAksiMasukMassal_(tipe, id)
- * Tujuan   : tipe "shift" -> Check In; tipe "status" -> Input Status.
- *            Dijalankan berurutan untuk seluruh pegawai terpilih.
+ * Tujuan   : Dikunci dengan kunciUi_() supaya klik ganda saat lemot
+ *            tidak memicu Check In/Input Status dobel.
  ******************************************************************/
 async function jalankanAksiMasukMassal_(tipe, id) {
+  if (sedangMemproses_) return;
+
   const kotak = document.getElementById("pesanAbsenMasuk");
   const daftarTerpilih = terpilih_.masuk.slice();
 
@@ -499,6 +502,8 @@ async function jalankanAksiMasukMassal_(tipe, id) {
     kotak.className = "pesan error";
     return;
   }
+
+  kunciUi_(true);
 
   const tanggal = formatTanggalUntukApi_(document.getElementById("fTanggal").value);
   const jamManual = document.getElementById("fJamManualMasuk").value;
@@ -509,42 +514,46 @@ async function jalankanAksiMasukMassal_(tipe, id) {
   let jumlahBerhasil = 0;
   const pesanGagal = [];
 
-  for (const idKaryawan of daftarTerpilih) {
-    const pegawai = petaPegawai_[idKaryawan];
-    const idLantaiKirim = pegawai.LANTAI === "-" ? "" : pegawai.LANTAI;
+  try {
+    for (const idKaryawan of daftarTerpilih) {
+      const pegawai = petaPegawai_[idKaryawan];
+      const idLantaiKirim = pegawai.LANTAI === "-" ? "" : pegawai.LANTAI;
 
-    try {
-      let hasil;
-      if (tipe === "shift") {
-        hasil = await panggilApi_("checkIn", {
-          tanggal: tanggal, idKaryawan: idKaryawan, idPt: pegawai.PT, idDivisi: pegawai.DIVISI,
-          idLantai: idLantaiKirim, idShift: id, jamManual: jamManual, keterangan: "",
-          username: sesiAktif_.username, penandaAdmin: sesiAktif_.penandaAdmin
-        });
-      } else {
-        hasil = await panggilApi_("inputStatus", {
-          tanggal: tanggal, idKaryawan: idKaryawan, idPt: pegawai.PT, idDivisi: pegawai.DIVISI,
-          idLantai: idLantaiKirim, idStatus: id, keterangan: "",
-          username: sesiAktif_.username, penandaAdmin: sesiAktif_.penandaAdmin
-        });
+      try {
+        let hasil;
+        if (tipe === "shift") {
+          hasil = await panggilApi_("checkIn", {
+            tanggal: tanggal, idKaryawan: idKaryawan, idPt: pegawai.PT, idDivisi: pegawai.DIVISI,
+            idLantai: idLantaiKirim, idShift: id, jamManual: jamManual, keterangan: "",
+            username: sesiAktif_.username, penandaAdmin: sesiAktif_.penandaAdmin
+          });
+        } else {
+          hasil = await panggilApi_("inputStatus", {
+            tanggal: tanggal, idKaryawan: idKaryawan, idPt: pegawai.PT, idDivisi: pegawai.DIVISI,
+            idLantai: idLantaiKirim, idStatus: id, keterangan: "",
+            username: sesiAktif_.username, penandaAdmin: sesiAktif_.penandaAdmin
+          });
+        }
+
+        if (hasil.success) jumlahBerhasil++;
+        else pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + hasil.message);
+      } catch (error) {
+        pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + error.message);
       }
-
-      if (hasil.success) jumlahBerhasil++;
-      else pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + hasil.message);
-    } catch (error) {
-      pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + error.message);
     }
-  }
 
-  if (pesanGagal.length === 0) {
-    kotak.textContent = jumlahBerhasil + " pegawai berhasil diproses.";
-    kotak.className = "pesan sukses";
-  } else {
-    kotak.textContent = jumlahBerhasil + " berhasil, " + pesanGagal.length + " gagal — " + pesanGagal.join("; ");
-    kotak.className = "pesan error";
-  }
+    if (pesanGagal.length === 0) {
+      kotak.textContent = jumlahBerhasil + " pegawai berhasil diproses.";
+      kotak.className = "pesan sukses";
+    } else {
+      kotak.textContent = jumlahBerhasil + " berhasil, " + pesanGagal.length + " gagal — " + pesanGagal.join("; ");
+      kotak.className = "pesan error";
+    }
 
-  muatDaftarAbsensi_();
+    await muatDaftarAbsensi_();
+  } finally {
+    kunciUi_(false);
+  }
 }
 
 /*******************************************************************
@@ -556,6 +565,8 @@ async function jalankanAksiMasukMassal_(tipe, id) {
  * Function : jalankanCheckInTelatMassal_(idShift)
  ******************************************************************/
 async function jalankanCheckInTelatMassal_(idShift) {
+  if (sedangMemproses_) return;
+
   const kotak = document.getElementById("pesanTelat");
   const daftarTerpilih = terpilih_.telat.slice();
 
@@ -572,6 +583,8 @@ async function jalankanCheckInTelatMassal_(idShift) {
     return;
   }
 
+  kunciUi_(true);
+
   const keterangan = "Telat " + menitTelat + " menit";
   const tanggal = formatTanggalUntukApi_(document.getElementById("fTanggal").value);
   const jamManual = document.getElementById("fJamManualMasuk").value;
@@ -582,34 +595,38 @@ async function jalankanCheckInTelatMassal_(idShift) {
   let jumlahBerhasil = 0;
   const pesanGagal = [];
 
-  for (const idKaryawan of daftarTerpilih) {
-    const pegawai = petaPegawai_[idKaryawan];
-    const idLantaiKirim = pegawai.LANTAI === "-" ? "" : pegawai.LANTAI;
+  try {
+    for (const idKaryawan of daftarTerpilih) {
+      const pegawai = petaPegawai_[idKaryawan];
+      const idLantaiKirim = pegawai.LANTAI === "-" ? "" : pegawai.LANTAI;
 
-    try {
-      const hasil = await panggilApi_("checkIn", {
-        tanggal: tanggal, idKaryawan: idKaryawan, idPt: pegawai.PT, idDivisi: pegawai.DIVISI,
-        idLantai: idLantaiKirim, idShift: idShift, jamManual: jamManual, keterangan: keterangan,
-        username: sesiAktif_.username, penandaAdmin: sesiAktif_.penandaAdmin
-      });
+      try {
+        const hasil = await panggilApi_("checkIn", {
+          tanggal: tanggal, idKaryawan: idKaryawan, idPt: pegawai.PT, idDivisi: pegawai.DIVISI,
+          idLantai: idLantaiKirim, idShift: idShift, jamManual: jamManual, keterangan: keterangan,
+          username: sesiAktif_.username, penandaAdmin: sesiAktif_.penandaAdmin
+        });
 
-      if (hasil.success) jumlahBerhasil++;
-      else pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + hasil.message);
-    } catch (error) {
-      pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + error.message);
+        if (hasil.success) jumlahBerhasil++;
+        else pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + hasil.message);
+      } catch (error) {
+        pesanGagal.push((pegawai ? pegawai.NICKNAME : idKaryawan) + ": " + error.message);
+      }
     }
-  }
 
-  if (pesanGagal.length === 0) {
-    kotak.textContent = jumlahBerhasil + " pegawai berhasil dicatat telat.";
-    kotak.className = "pesan sukses";
-    document.getElementById("tMenitTelat").value = "";
-  } else {
-    kotak.textContent = jumlahBerhasil + " berhasil, " + pesanGagal.length + " gagal — " + pesanGagal.join("; ");
-    kotak.className = "pesan error";
-  }
+    if (pesanGagal.length === 0) {
+      kotak.textContent = jumlahBerhasil + " pegawai berhasil dicatat telat.";
+      kotak.className = "pesan sukses";
+      document.getElementById("tMenitTelat").value = "";
+    } else {
+      kotak.textContent = jumlahBerhasil + " berhasil, " + pesanGagal.length + " gagal — " + pesanGagal.join("; ");
+      kotak.className = "pesan error";
+    }
 
-  muatDaftarAbsensi_();
+    await muatDaftarAbsensi_();
+  } finally {
+    kunciUi_(false);
+  }
 }
 
 /*******************************************************************
@@ -621,6 +638,8 @@ async function jalankanCheckInTelatMassal_(idShift) {
  * Function : bukaModalKembali_(idAbsensi, nickname, jamMasuk)
  ******************************************************************/
 function bukaModalKembali_(idAbsensi, nickname, jamMasuk) {
+  if (sedangMemproses_) return;
+
   dataUntukCheckKembali_ = idAbsensi;
   document.getElementById("judulModalKembali").textContent = "Absen Istirahat - " + nickname;
   document.getElementById("infoModalKembali").textContent = "Jam Masuk: " + jamMasuk;
@@ -632,9 +651,12 @@ function bukaModalKembali_(idAbsensi, nickname, jamMasuk) {
  * Function : jalankanCheckKembali_()
  ******************************************************************/
 async function jalankanCheckKembali_() {
-  const jamManual = document.getElementById("fJamManualKembali").value;
+  if (sedangMemproses_) return;
+  kunciUi_(true);
 
   try {
+    const jamManual = document.getElementById("fJamManualKembali").value;
+
     const hasil = await panggilApi_("checkKembali", {
       idAbsensi: dataUntukCheckKembali_,
       jamManual: jamManual,
@@ -650,11 +672,13 @@ async function jalankanCheckKembali_() {
     }
 
     document.getElementById("modalKembali").classList.remove("tampil");
-    muatDaftarAbsensi_();
+    await muatDaftarAbsensi_();
   } catch (error) {
     const kotak = document.getElementById("pesanModalKembali");
     kotak.textContent = "[ABSEN ISTIRAHAT] " + error.message;
     kotak.className = "pesan error";
+  } finally {
+    kunciUi_(false);
   }
 }
 
@@ -667,6 +691,8 @@ async function jalankanCheckKembali_() {
  * Function : bukaModalUpdate_(idAbsensi, nickname)
  ******************************************************************/
 function bukaModalUpdate_(idAbsensi, nickname) {
+  if (sedangMemproses_) return;
+
   dataUntukUpdate_ = idAbsensi;
   document.getElementById("judulModalUpdate").textContent = "Update - " + nickname;
   document.getElementById("pesanModalUpdate").className = "pesan";
@@ -688,11 +714,15 @@ function bukaModalUpdate_(idAbsensi, nickname) {
  * Function : jalankanSimpanKejadian_()
  ******************************************************************/
 async function jalankanSimpanKejadian_() {
-  const statusUpdate = document.getElementById("muStatus").value;
-  const keterangan = document.getElementById("muKeterangan").value.trim();
+  if (sedangMemproses_) return;
+  kunciUi_(true);
+
   const kotak = document.getElementById("pesanModalUpdate");
 
   try {
+    const statusUpdate = document.getElementById("muStatus").value;
+    const keterangan = document.getElementById("muKeterangan").value.trim();
+
     const hasil = await panggilApi_("updateStatus", {
       idAbsensi: dataUntukUpdate_,
       statusUpdate: statusUpdate,
@@ -704,10 +734,12 @@ async function jalankanSimpanKejadian_() {
     kotak.textContent = hasil.message;
     kotak.className = "pesan " + (hasil.success ? "sukses" : "error");
 
-    if (hasil.success) muatDaftarAbsensi_();
+    if (hasil.success) await muatDaftarAbsensi_();
   } catch (error) {
     kotak.textContent = "[UPDATE] " + error.message;
     kotak.className = "pesan error";
+  } finally {
+    kunciUi_(false);
   }
 }
 
@@ -715,15 +747,19 @@ async function jalankanSimpanKejadian_() {
  * Function : jalankanKoreksiJam_()
  ******************************************************************/
 async function jalankanKoreksiJam_() {
+  if (sedangMemproses_) return;
+
+  const kotak = document.getElementById("pesanModalUpdate");
   const kolomJam = document.getElementById("mjKolom").value;
   const jamBaru = document.getElementById("mjJamBaru").value;
-  const kotak = document.getElementById("pesanModalUpdate");
 
   if (!jamBaru) {
     kotak.textContent = "Jam baru wajib diisi.";
     kotak.className = "pesan error";
     return;
   }
+
+  kunciUi_(true);
 
   try {
     const hasil = await panggilApi_("koreksiJam", {
@@ -737,10 +773,12 @@ async function jalankanKoreksiJam_() {
     kotak.textContent = hasil.message;
     kotak.className = "pesan " + (hasil.success ? "sukses" : "error");
 
-    if (hasil.success) muatDaftarAbsensi_();
+    if (hasil.success) await muatDaftarAbsensi_();
   } catch (error) {
     kotak.textContent = "[KOREKSI JAM] " + error.message;
     kotak.className = "pesan error";
+  } finally {
+    kunciUi_(false);
   }
 }
 
@@ -748,6 +786,9 @@ async function jalankanKoreksiJam_() {
  * Function : jalankanKoreksiShift_(idShiftBaru)
  ******************************************************************/
 async function jalankanKoreksiShift_(idShiftBaru) {
+  if (sedangMemproses_) return;
+  kunciUi_(true);
+
   const kotak = document.getElementById("pesanModalUpdate");
 
   try {
@@ -761,10 +802,12 @@ async function jalankanKoreksiShift_(idShiftBaru) {
     kotak.textContent = hasil.message;
     kotak.className = "pesan " + (hasil.success ? "sukses" : "error");
 
-    if (hasil.success) muatDaftarAbsensi_();
+    if (hasil.success) await muatDaftarAbsensi_();
   } catch (error) {
     kotak.textContent = "[KOREKSI SHIFT] " + error.message;
     kotak.className = "pesan error";
+  } finally {
+    kunciUi_(false);
   }
 }
 
@@ -777,6 +820,8 @@ async function jalankanKoreksiShift_(idShiftBaru) {
  * Function : bukaModalInputLangsung_(idKaryawan, nickname)
  ******************************************************************/
 function bukaModalInputLangsung_(idKaryawan, nickname) {
+  if (sedangMemproses_) return;
+
   idKaryawanUntukInputLangsung_ = idKaryawan;
   document.getElementById("judulModalInputLangsung").textContent = "Input Status - " + nickname;
   document.getElementById("pesanModalInputLangsung").className = "pesan";
@@ -796,6 +841,9 @@ function bukaModalInputLangsung_(idKaryawan, nickname) {
  * Function : jalankanInputStatusLangsung_(idStatus)
  ******************************************************************/
 async function jalankanInputStatusLangsung_(idStatus) {
+  if (sedangMemproses_) return;
+  kunciUi_(true);
+
   const kotak = document.getElementById("pesanModalInputLangsung");
   const pegawai = petaPegawai_[idKaryawanUntukInputLangsung_];
   const tanggal = formatTanggalUntukApi_(document.getElementById("fTanggal").value);
@@ -820,10 +868,12 @@ async function jalankanInputStatusLangsung_(idStatus) {
     }
 
     document.getElementById("modalInputLangsung").classList.remove("tampil");
-    muatDaftarAbsensi_();
+    await muatDaftarAbsensi_();
   } catch (error) {
     kotak.textContent = "[INPUT STATUS] " + error.message;
     kotak.className = "pesan error";
+  } finally {
+    kunciUi_(false);
   }
 }
 
@@ -861,29 +911,34 @@ async function jalankanInputStatusLangsung_(idStatus) {
   document.getElementById("fLantai").addEventListener("change", muatDaftarAbsensi_);
 
   document.getElementById("tombolBatalPilihanMasuk").addEventListener("click", function () {
+    if (sedangMemproses_) return;
     terpilih_.masuk = [];
     renderGridPilihMasuk_("gridAbsenMasuk", "masuk");
     perbaruiLabelTerpilih_("masuk");
   });
 
   document.getElementById("tombolBatalPilihanTelat").addEventListener("click", function () {
+    if (sedangMemproses_) return;
     terpilih_.telat = [];
     renderGridPilihMasuk_("gridTelat", "telat");
     perbaruiLabelTerpilih_("telat");
   });
 
   document.getElementById("tombolBatalKembali").addEventListener("click", function () {
+    if (sedangMemproses_) return;
     document.getElementById("modalKembali").classList.remove("tampil");
   });
   document.getElementById("tombolKonfirmasiKembali").addEventListener("click", jalankanCheckKembali_);
 
   document.getElementById("tombolTutupModalUpdate").addEventListener("click", function () {
+    if (sedangMemproses_) return;
     document.getElementById("modalUpdate").classList.remove("tampil");
   });
   document.getElementById("tombolSimpanKejadian").addEventListener("click", jalankanSimpanKejadian_);
   document.getElementById("tombolSimpanKoreksiJam").addEventListener("click", jalankanKoreksiJam_);
 
   document.getElementById("tombolTutupModalInputLangsung").addEventListener("click", function () {
+    if (sedangMemproses_) return;
     document.getElementById("modalInputLangsung").classList.remove("tampil");
   });
 })();
