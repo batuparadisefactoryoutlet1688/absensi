@@ -27,7 +27,7 @@
  * deployment BARU (URL exec berubah). Kalau cuma "New version" di
  * deployment yang sama, URL ini TIDAK berubah.
  ******************************************************************/
-const APPSCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbyEd79k96Z_l_YoZnVXhotHQWHkieR4K-FSQdz5EVRrjyeciqmc0vzaOgEFZomw1QMLAw/exec";
+const APPSCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbyvLTfMC_I9PAQ0yIP6wqHwPisuF5HVUkdCSr-_7fKQFaOivVvZFTPrrhy3tGSJgaZ7gg/exec";
 
 /*******************************************************************
  * PEMANGGIL API
