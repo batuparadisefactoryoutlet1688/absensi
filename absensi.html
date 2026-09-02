@@ -2,36 +2,25 @@
   PROJECT      : Sistem Absensi
   MODULE       : Absensi
   FILE         : absensi.html
-  VERSION      : v1.1.0
+  VERSION      : v1.2.0
   AUTHOR       : Tim Pengembang
   CREATED      : 2026-08-30
-  LAST UPDATE  : 2026-08-31
+  LAST UPDATE  : 2026-09-02
 
   DESCRIPTION
   ------------------------------------------------------------------
   Halaman inti Aplikasi Absensi. Filter Tanggal/PT/Divisi/Lantai
   dipilih SEKALI di atas, lalu 4 tab: Absen Masuk, Absen Istirahat,
   Telat, Update. Pegawai ditampilkan sebagai card (klik, bukan
-  ketik nama) sesuai Blueprint Aturan 14 & 31. Tombol aksi di Absen
-  Masuk/Telat menggabungkan Shift + Status non-hadir dalam satu grid
-  berwarna.
+  ketik nama) sesuai Blueprint Aturan 14 & 31.
 ------------------------------------------------------------------->
 
 <!------------------------------------------------------------------
   VERSION HISTORY
   ------------------------------------------------------------------
-  v1.0.0
-  - Initial Release (Check In / Check Kembali / Update, single shift only).
-
-  v1.1.0
-  - Rename tab: Check In -> Absen Masuk, Check Kembali -> Absen Istirahat.
-  - Menambahkan tab baru: Telat (checkIn + keterangan menit telat).
-  - Panel aksi di Absen Masuk sekarang gabungan Shift + Status
-    non-hadir (OFF/Izin/Sakit/Cuti/Dinas/Alpa) dalam satu grid.
-  - Tab Update sekarang menampilkan SEMUA pegawai (roster penuh),
-    bukan cuma yang sudah punya data absensi hari itu.
-  - Menambahkan modal baru "Input Status Langsung" untuk pegawai
-    di tab Update yang belum punya data absensi hari ini.
+  v1.0.0 - Initial Release (Check In / Check Kembali / Update, shift saja).
+  v1.1.0 - Rename tab, tambah Telat, gabung tombol Shift+Status, Update roster penuh.
+  v1.2.0 - Menambahkan #guardOverlay untuk mencegah klik ganda saat proses berjalan.
 ------------------------------------------------------------------->
 
 <!DOCTYPE html>
@@ -43,6 +32,9 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <!-- Lapisan penangkap klik saat proses async berjalan -->
+  <div class="guardOverlay" id="guardOverlay"></div>
 
   <div class="headerApp">
     <div class="judul"><a href="dashboard.html">Sistem Absensi</a></div>
