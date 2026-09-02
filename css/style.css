@@ -2,10 +2,10 @@
  * PROJECT      : Sistem Absensi
  * MODULE       : Shared Stylesheet
  * FILE         : css/style.css
- * VERSION      : v1.1.0
+ * VERSION      : v1.2.0
  * AUTHOR       : Tim Pengembang
  * CREATED      : 2026-08-30
- * LAST UPDATE  : 2026-08-31
+ * LAST UPDATE  : 2026-09-02
  *
  * DESCRIPTION
  * -----------------------------------------------------------------
@@ -21,10 +21,12 @@
  * - Initial Release.
  *
  * v1.1.0
- * - Menambahkan warna per kode shift/status (P/S/M/PS/FT.../OFF/
- *   Izin/Sakit/Cuti/Dinas/Alpa) lewat [data-kode="..."], dipakai
- *   tombol aksi gabungan di halaman Absensi.
- * - Menambahkan style untuk tab "Telat" dan roster penuh di Update.
+ * - Menambahkan warna per kode shift/status lewat [data-kode="..."].
+ *
+ * v1.2.0
+ * - Menambahkan .guardOverlay: lapisan transparan yang muncul saat
+ *   proses async berjalan (Check In/Kembali/Update/dll), supaya
+ *   klik berulang saat lemot tidak memicu input dobel.
  ******************************************************************/
 
 /*******************************************************************
@@ -376,11 +378,6 @@ table.tabelData tbody tr:hover { background: #FAFBFC; }
 
 /*******************************************************************
  * SECTION BLOCK - TOMBOL AKSI (SHIFT & STATUS) - GRID BERWARNA
- * -----------------------------------------------------------------
- * Dipakai untuk grid pilihan shift + status di tab Absen Masuk,
- * Telat, dan Koreksi Shift. Warna diatur per kode lewat atribut
- * data-kode, supaya mudah dibaca sekilas (hijau = shift pagi/siang,
- * kuning-olive = fulltime, merah/pink/ungu = status non-hadir).
  ******************************************************************/
 .gridAksi {
   display: grid;
@@ -400,13 +397,11 @@ table.tabelData tbody tr:hover { background: #FAFBFC; }
 
 .tombolAksi:hover { filter: brightness(0.92); }
 
-/* Shift: Pagi/Siang/Malam/Pagi-Siang - hijau */
 .tombolAksi[data-kode="P"]  { background: #43A047; color: #FFFFFF; }
 .tombolAksi[data-kode="S"]  { background: #66BB6A; color: #FFFFFF; }
 .tombolAksi[data-kode="PS"] { background: #A5D6A7; color: #1B3A1D; }
 .tombolAksi[data-kode="M"]  { background: #A5D6A7; color: #1B3A1D; }
 
-/* Shift: Fulltime - kuning ke olive gelap */
 .tombolAksi[data-kode="FT"]    { background: #FDD835; color: #4A3B00; }
 .tombolAksi[data-kode="FT 1"]  { background: #FDD835; color: #4A3B00; }
 .tombolAksi[data-kode="FT 2"]  { background: #C9B037; color: #FFFFFF; }
@@ -414,7 +409,6 @@ table.tabelData tbody tr:hover { background: #FAFBFC; }
 .tombolAksi[data-kode="FMid"]  { background: #A98307; color: #FFFFFF; }
 .tombolAksi[data-kode="FM"]    { background: #8B6F1A; color: #FFFFFF; }
 
-/* Status non-hadir - merah/pink/ungu/oranye/biru/abu */
 .tombolAksi[data-kode="OFF"]  { background: #E53935; color: #FFFFFF; }
 .tombolAksi[data-kode="C"]    { background: #F48FB1; color: #4A0E28; }
 .tombolAksi[data-kode="I"]    { background: #8E24AA; color: #FFFFFF; }
@@ -449,6 +443,25 @@ table.tabelData tbody tr:hover { background: #FAFBFC; }
 }
 
 .kartuModal h3 { margin: 0 0 12px 0; font-size: 15px; }
+
+/*******************************************************************
+ * SECTION BLOCK - GUARD OVERLAY (cegah klik ganda saat proses)
+ * -----------------------------------------------------------------
+ * Ditampilkan sesaat setiap kali ada permintaan ke server sedang
+ * berjalan (Check In, Check Kembali, Update, dll). Transparan tapi
+ * menangkap semua klik, jadi klik berulang saat lemot tidak nembus
+ * ke tombol di bawahnya dan tidak memicu input dobel.
+ ******************************************************************/
+.guardOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: transparent;
+  display: none;
+  cursor: wait;
+}
+
+.guardOverlay.tampil { display: block; }
 
 /*******************************************************************
  * SECTION BLOCK - UTILITAS
